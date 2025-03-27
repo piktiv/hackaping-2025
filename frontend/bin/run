@@ -2,5 +2,4 @@
 
 . "$(dirname "$0")/init"
 
-set -x
-exec npm run dev -- --host "${HOST:-0.0.0.0}" --port "${PORT:-3002}" --clearScreen=false
+exec npm run dev -- --host "${HOST:-0.0.0.0}" --port "${PORT:-3002}"
