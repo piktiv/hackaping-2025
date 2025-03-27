@@ -3,6 +3,7 @@ import time
 from couchbase.cluster import Cluster
 from couchbase.options import ClusterOptions, QueryOptions
 from couchbase.auth import PasswordAuthenticator
+from couchbase.exceptions import DocumentNotFoundException
 
 from ..utils import log
 
@@ -265,6 +266,8 @@ class SchedulingClient:
                 return None
 
             return result.value
+        except DocumentNotFoundException:
+            return None
         except Exception as e:
             logger.warning(f"Failed to get employee: {str(e)}")
             return None
@@ -401,6 +404,8 @@ class SchedulingClient:
                 return None
 
             return result.value
+        except DocumentNotFoundException:
+            return None
         except Exception as e:
             logger.warning(f"Failed to get schedule: {str(e)}")
             return None
@@ -560,6 +565,18 @@ class SchedulingClient:
                 result = self.rules.get("system_rules")
 
             return result.value
+        except DocumentNotFoundException:
+            # Initialize default rules without logging warning when document not found
+            self._init_default_rules()
+            try:
+                result = self.rules.get("system_rules")
+                return result.value
+            except Exception:
+                # Fallback to default rules
+                return {
+                    "max_days_per_week": 3,
+                    "preferred_balance": 0.2
+                }
         except Exception as e:
             logger.warning(f"Failed to get rules: {str(e)}")
             # Return default rules
