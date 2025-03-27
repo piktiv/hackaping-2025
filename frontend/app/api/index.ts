@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {
+import type {
   Employee,
   EmployeeCreateRequest,
   Schedule,
@@ -9,7 +9,7 @@ import {
   ScheduleChangeRequest,
   ScheduleChangeResponse,
   MessageResponse
-} from '../types';
+} from '~/types';
 
 const API_URL = 'http://localhost:3000/api';
 

@@ -4,15 +4,15 @@ import {
   fetchSchedules,
   fetchRules,
   processScheduleChange
-} from "../../src/api";
-import {
+} from "~/api";
+import type {
   Employee,
   Schedule,
   Rules,
   ScheduleWithEmployee,
   ScheduleChangeRequest,
   ScheduleChangeResponse
-} from "../../src/types";
+} from "~/types";
 
 export function meta() {
   return [
