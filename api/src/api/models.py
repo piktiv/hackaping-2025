@@ -1,16 +1,17 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Literal, Any
-from datetime import date
+from typing import Any
 
+class ScheduleChange(BaseModel):
+    employee_name: str = Field(description="The name of the employee originally scheduled for the date")
+    target_date: str = Field(description="The date of the requested change in YYYY-MM-DD format")
+    suggested_replacement: str = Field(description="The suggested replacement employee, if any")
 
 # Schedule Change Request Analysis
 class ScheduleChangeAnalysis(BaseModel):
     thoughts: str = Field(description="The AI's thought process while analyzing the request")
     original_query: str = Field(description="The original query text that was analyzed")
-    employee_name: Optional[str] = Field(description="The name of the employee requesting the change")
-    target_date: Optional[str] = Field(description="The date of the requested change in YYYY-MM-DD format")
-    reason: Optional[str] = Field(description="The extracted reason for the change")
-    suggested_replacement: Optional[str] = Field(description="The suggested replacement employee, if any")
+    changes: list[ScheduleChange] = Field(description="The suggested changes to the schedule")
+    reason: str | None = Field(description="The extracted reason for the change")
     recommendation: str = Field(
         description="Whether the change should be approved, denied, or needs discussion",
         enum=["approve", "deny", "discuss"]
@@ -23,8 +24,8 @@ class Employee(BaseModel):
     name: str
     employee_number: str
     first_line_support_count: int = 0
-    known_absences: List[str] = Field(default_factory=list)  # ISO format dates
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    known_absences: list[str] = Field(default_factory=list)  # ISO format dates
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 # Schedule Model
@@ -46,7 +47,7 @@ class MessageResponse(BaseModel):
 
 class ScheduleChangeRequest(BaseModel):
     request_text: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ScheduleChangeResponse(BaseModel):
@@ -57,8 +58,8 @@ class ScheduleChangeResponse(BaseModel):
 class EmployeeCreateRequest(BaseModel):
     name: str
     employee_number: str
-    known_absences: List[str] = Field(default_factory=list)  # ISO format dates
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    known_absences: list[str] = Field(default_factory=list)  # ISO format dates
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ScheduleCreateRequest(BaseModel):
@@ -67,5 +68,5 @@ class ScheduleCreateRequest(BaseModel):
 
 
 class RulesUpdateRequest(BaseModel):
-    max_days_per_week: Optional[int] = None
-    preferred_balance: Optional[float] = None
+    max_days_per_week: int | None = None
+    preferred_balance: float | None = None

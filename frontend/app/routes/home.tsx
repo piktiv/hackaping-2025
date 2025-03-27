@@ -33,10 +33,6 @@ export default function Home() {
 
   // Get current date and week's Monday and Sunday
   const today = new Date();
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - today.getDay() + 1);
-  const sunday = new Date(today);
-  sunday.setDate(today.getDate() + (7 - today.getDay()));
 
   const formatDate = (date: Date): string => {
     return date.toISOString().split('T')[0];
@@ -50,7 +46,7 @@ export default function Home() {
         // Fetch all data in parallel
         const [employeesData, schedulesData, rulesData] = await Promise.all([
           fetchEmployees(),
-          fetchSchedules(formatDate(monday), formatDate(sunday)),
+          fetchSchedules(formatDate(today)),
           fetchRules()
         ]);
 
@@ -93,12 +89,12 @@ export default function Home() {
       setChangeResponse(response);
 
       // If the request was approved and changes were applied, refresh the schedules
-      if (response.analysis.recommendation === 'approve' &&
-          response.analysis.target_date &&
-          response.analysis.suggested_replacement) {
+      if (response.analysis.recommendation === 'approve' && 
+          response.analysis.changes && 
+          response.analysis.changes.length > 0) {
 
         // Fetch updated schedules
-        const schedulesData = await fetchSchedules(formatDate(monday), formatDate(sunday));
+        const schedulesData = await fetchSchedules(formatDate(today));
 
         // Combine schedules with employee names
         const schedulesWithNames = schedulesData.map(schedule => {
@@ -147,7 +143,7 @@ export default function Home() {
             <DashboardCard
               title="Weekly Schedule"
               value={`${schedules.length} shifts`}
-              description={`${formatDate(monday)} - ${formatDate(sunday)}`}
+              description={`Today's date: ${formatDate(today)}`}
               icon="📅"
             />
             <DashboardCard
@@ -250,18 +246,6 @@ export default function Home() {
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Request Analysis</h3>
                 <dl className="mt-2 space-y-2">
                   <div className="sm:grid sm:grid-cols-3 sm:gap-4">
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Employee</dt>
-                    <dd className="mt-1 text-sm text-gray-900 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                      {changeResponse.analysis.employee_name || 'Not specified'}
-                    </dd>
-                  </div>
-                  <div className="sm:grid sm:grid-cols-3 sm:gap-4">
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Date</dt>
-                    <dd className="mt-1 text-sm text-gray-900 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                      {changeResponse.analysis.target_date || 'Not specified'}
-                    </dd>
-                  </div>
-                  <div className="sm:grid sm:grid-cols-3 sm:gap-4">
                     <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Reason</dt>
                     <dd className="mt-1 text-sm text-gray-900 dark:text-gray-300 sm:col-span-2 sm:mt-0">
                       {changeResponse.analysis.reason || 'Not specified'}
@@ -279,9 +263,19 @@ export default function Home() {
                     </dd>
                   </div>
                   <div className="sm:grid sm:grid-cols-3 sm:gap-4">
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Replacement</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Changes</dt>
                     <dd className="mt-1 text-sm text-gray-900 dark:text-gray-300 sm:col-span-2 sm:mt-0">
-                      {changeResponse.analysis.suggested_replacement || 'None suggested'}
+                      {changeResponse.analysis.changes && changeResponse.analysis.changes.length > 0 ? (
+                        <ul className="list-inside list-disc space-y-1">
+                          {changeResponse.analysis.changes.map((change, index) => (
+                            <li key={index}>
+                              Date: {change.target_date}, Replacement: {change.suggested_replacement || 'None'}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        'No changes specified'
+                      )}
                     </dd>
                   </div>
                   <div className="sm:grid sm:grid-cols-3 sm:gap-4">

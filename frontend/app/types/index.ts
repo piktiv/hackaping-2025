@@ -36,14 +36,17 @@ export interface RulesUpdateRequest {
   preferred_balance?: number;
 }
 
+export interface ScheduleChange {
+  target_date: string;
+  suggested_replacement: string;
+}
+
 // Schedule Change Types
 export interface ScheduleChangeAnalysis {
   thoughts: string;
   original_query: string;
-  employee_name?: string;
-  target_date?: string;
   reason?: string;
-  suggested_replacement?: string;
+  changes: ScheduleChange[];
   recommendation: 'approve' | 'deny' | 'discuss';
   reasoning: string;
 }

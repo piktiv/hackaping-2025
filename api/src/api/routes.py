@@ -40,7 +40,7 @@ def process_schedule_change(
         name="analyze_schedule_change",
         instructions="""
         Analyze this schedule change request considering the rules and provide a clear recommendation.
-        Extract the employee name, target date, reason for change, and suggest replacements if applicable.
+        Extract the employee name, target dates, reason for change, and suggest replacements if applicable.
         Use the provided employee and schedule information to make an informed recommendation.
         Consider workload balance, consecutive shifts, and employee absences in your analysis.
         Include the original query text in your analysis.
@@ -306,42 +306,42 @@ async def process_schedule_change_request(
 
     # Apply changes to the schedule if recommended
     try:
-        replacement_employee = None
-        if (analysis.recommendation == "approve" and
-            analysis.target_date and
-            analysis.suggested_replacement):
+        if (analysis.recommendation == "approve"):
+            for change in analysis.changes:
+                target_date = change.target_date
+                suggested_replacement = change.suggested_replacement
 
-            # Find the employee number for the suggested replacement
-            replacement_employee = next(
-                (emp for emp in employees if emp["name"] == analysis.suggested_replacement),
-                None
-            )
+                # Find the employee number for the suggested replacement
+                replacement_employee = next(
+                    (emp for emp in employees if emp["name"] == suggested_replacement),
+                    None
+                )
 
-            if replacement_employee:
-                # Check if the schedule exists for that date
-                existing_schedule = db.get_schedule(analysis.target_date)
+                if replacement_employee:
+                    # Check if the schedule exists for that date
+                    existing_schedule = db.get_schedule(target_date)
 
-                if existing_schedule:
-                    # Update the existing schedule
-                    success = db.update_schedule(
-                        analysis.target_date,
-                        replacement_employee["employee_number"]
-                    )
-                    logger.info(
-                        f"Schedule change applied: Date {analysis.target_date}, "
-                        f"New employee: {analysis.suggested_replacement}, "
-                        f"Success: {success}"
-                    )
-                else:
-                    # Create a new schedule if it doesn't exist
-                    db.create_schedule(
-                        analysis.target_date,
-                        replacement_employee["employee_number"]
-                    )
-                    logger.info(
-                        f"New schedule created: Date {analysis.target_date}, "
-                        f"Employee: {analysis.suggested_replacement}"
-                    )
+                    if existing_schedule:
+                        # Update the existing schedule
+                        success = db.update_schedule(
+                            target_date,
+                            replacement_employee["employee_number"]
+                        )
+                        logger.info(
+                            f"Schedule change applied: Date {target_date}, "
+                            f"New employee: {suggested_replacement}, "
+                            f"Success: {success}"
+                        )
+                    else:
+                        # Create a new schedule if it doesn't exist
+                        db.create_schedule(
+                            target_date,
+                            replacement_employee["employee_number"]
+                        )
+                        logger.info(
+                            f"New schedule created: Date {target_date}, "
+                            f"Employee: {suggested_replacement}"
+                        )
     except Exception as e:
         logger.error(f"Error applying schedule changes: {str(e)}")
 
