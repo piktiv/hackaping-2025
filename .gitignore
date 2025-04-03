@@ -10,3 +10,11 @@ inject-secret.sh
 uv.lock
 yarn.lock
 package-lock.json
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
+.env.test
