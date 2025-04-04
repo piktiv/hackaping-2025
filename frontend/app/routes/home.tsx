@@ -1,16 +1,12 @@
 import { useEffect, useState } from "react";
 import {
   fetchEmployees,
-  fetchSchedules,
-  fetchRules,
-  processScheduleChange
+  postShift
 } from "~/api";
 import type {
   Employee,
-  Schedule,
   Rules,
   ScheduleWithEmployee,
-  ScheduleChangeRequest,
   ScheduleChangeResponse
 } from "~/types";
 import { DashboardCard } from "~/components/DashboardCard";
@@ -42,18 +38,14 @@ export default function Home() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [employeesData, schedulesData, rulesData] = await Promise.all([
-          fetchEmployees(),
-          fetchSchedules(formatDate(today)),
-          fetchRules()
-        ]);
+        /*const [employeesData, schedulesData, rulesData] = await Promise.all([
+          //fetchEmployees(),
+          //fetchRules()
+        ]);*/
 
-        setEmployees(employeesData);
-        setSchedules(schedulesData.map(schedule => ({
-          ...schedule,
-          employee_name: employeesData.find(emp => emp.employee_number === schedule.first_line_support)?.name || 'Unknown Employee'
-        })));
-        setRules(rulesData);
+        //setEmployees(employeesData);
+        postShift();
+        //setRules(rulesData);
       } catch (err) {
         console.error('Error loading data:', err);
         setError('Failed to load data. Please try again later.');
@@ -66,27 +58,7 @@ export default function Home() {
   }, []);
 
   const handleChangeRequest = async (requestText: string) => {
-    try {
-      setRequestLoading(true);
-      setError(null);
-
-      const response = await processScheduleChange({ request_text: requestText });
-      setChangeResponse(response);
-
-      if (response.analysis.recommendation === 'approve' && 
-          response.analysis.changes?.length > 0) {
-        const schedulesData = await fetchSchedules(formatDate(today));
-        setSchedules(schedulesData.map(schedule => ({
-          ...schedule,
-          employee_name: employees.find(emp => emp.employee_number === schedule.first_line_support)?.name || 'Unknown Employee'
-        })));
-      }
-    } catch (err) {
-      console.error('Error processing schedule change:', err);
-      setError('Failed to process schedule change request.');
-    } finally {
-      setRequestLoading(false);
-    }
+    console.log("ChangeRequest")
   };
 
   if (loading) {

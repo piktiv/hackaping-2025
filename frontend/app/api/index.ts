@@ -1,8 +1,8 @@
 import axios from 'axios';
 import type {
   Employee,
-  EmployeeCreateRequest,
   Schedule,
+  Shift,
   ScheduleCreateRequest,
   Rules,
   RulesUpdateRequest,
@@ -46,35 +46,19 @@ export const fetchEmployees = async (): Promise<Employee[]> => {
   return response.data;
 };
 
-export const fetchEmployee = async (employeeNumber: string): Promise<Employee> => {
-  const response = await api.get<Employee>(`/employees/${employeeNumber}`);
-  return response.data;
-};
-
-export const createEmployee = async (employee: EmployeeCreateRequest): Promise<Employee> => {
-  const response = await api.post<Employee>('/employees', employee);
-  return response.data;
-};
-
-export const updateEmployee = async (employeeNumber: string, employee: EmployeeCreateRequest): Promise<Employee> => {
-  const response = await api.put<Employee>(`/employees/${employeeNumber}`, employee);
-  return response.data;
-};
-
-export const deleteEmployee = async (employeeNumber: string): Promise<MessageResponse> => {
-  const response = await api.delete<MessageResponse>(`/employees/${employeeNumber}`);
-  return response.data;
-};
-
 // Schedule API calls
-export const fetchSchedules = async (startDate?: string, endDate?: string): Promise<Schedule[]> => {
-  const params = new URLSearchParams();
-  if (startDate) params.append('start_date', startDate);
-  if (endDate) params.append('end_date', endDate);
+export const postShift = async (startDate?: string, endDate?: string) => {
 
-  const url = params.toString() ? `/schedules?${params.toString()}` : '/schedules';
-  const response = await api.get<Schedule[]>(url);
-  return response.data;
+  const shift: Shift = {
+    employeeNumber: 1,
+    end: "2025-04-04 14-00",
+    start: "2025-04-04 13-00",
+    score: 2,
+    type: "work"
+  }
+  
+  const response = await api.post<Schedule[]>('/shifts', shift);
+  console.log(response.data);
 };
 
 export const fetchSchedule = async (date: string): Promise<Schedule> => {
