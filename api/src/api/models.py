@@ -93,6 +93,9 @@ class GroundEmployee(EmployeeInput):
 class Employee(GroundEmployee):
     employee_number: str
 
+class FrontendEmployee(BaseModel):
+    employee_number: str
+    name: str
 
 # API Request/Response Models
 class MessageResponse(BaseModel):

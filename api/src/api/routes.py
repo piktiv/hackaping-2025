@@ -88,6 +88,8 @@ async def get_employees(
 ) -> List[Employee]:
     """Get all employees."""
     employees = db.get_employees()
+    print('employees: ', employees)
+    print(type(employees))
     return [Employee(**emp) for emp in employees]
 
 @router.get("/employees/{employee_number}", response_model=Employee)
