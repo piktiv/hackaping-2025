@@ -9,6 +9,7 @@ import type {
 } from "~/types";
 import { ScheduleChangeForm } from "~/components/ScheduleChangeForm";
 import CalendarScheduler from "~/components/CalendarScheduler";
+import { ShiftReviewDisplay } from "~/components/ShiftReviewDisplay";
 
 export function meta() {
   return [
@@ -97,6 +98,7 @@ export default function Home() {
             >
               {evalIsLoading ? 'Processing...' : 'Evaluate Schedule'}
             </button>
+            <ShiftReviewDisplay review={evaluation} isLoading={evalIsLoading} />
           </div>
 
           <div className="mt-4">
