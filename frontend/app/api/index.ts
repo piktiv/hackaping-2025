@@ -1,8 +1,9 @@
 import axios from 'axios';
 import type {
   Employee,
-  Shift,
-  MessageResponse
+  PostShift,
+  MessageResponse,
+  GetShift
 } from '~/types';
 
 const API_URL = 'http://localhost:3000/api';
@@ -41,15 +42,20 @@ export const fetchEmployees = async (): Promise<Employee[]> => {
 };
 
 // Schedule API calls
-export const postShift = async (startDate?: string, endDate?: string) => {
+export const postShift = async () => {
 
-  const shift: Shift = {
+  const shift: PostShift = {
     employee_number: "EMP001",
     end: "2025-04-04 14-00",
     start: "2025-04-04 13-00",
     type: "work"
   }
   
-  const response = await api.post<Shift[]>('/shifts', shift);
+  const response = await api.post<PostShift[]>('/shifts', shift);
+  console.log(response.data);
+};
+
+export const getShifts = async (startDate?: string, endDate?: string) => {
+  const response = await api.get<GetShift[]>('/shifts');
   console.log(response.data);
 };

@@ -101,7 +101,6 @@ const CustomToolbar: React.FC<ToolbarProps<CustomEvent, { resourceId: number; re
 
 const CalendarScheduler: React.FC = () => {
   const [view, setView] = useState<"day" | "month">("day");
-  console.log(events)
   return (
     <div style={{ height: "80vh", padding: "20px" }}>
       <h2>Work Schedule</h2>

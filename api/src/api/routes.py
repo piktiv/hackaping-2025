@@ -239,14 +239,32 @@ async def create_shift(
     shift = db.get_shift(shift_id)
     return Shift(**shift)
 
+@router.put("/shifts", response_model=Shift)
+async def update_shift(
+    db: DbHandle,
+    request: Shift
+) -> Shift:
+    """Update an employee."""
+    # Check if employee exists
+    if not db.get_shift(request.shift_id):
+        raise HTTPException(status_code=404, detail=f"Shift with id {request.shift_id} not found")
+
+    updates = request.dict(exclude_unset=True)
+    success = db.update_shift(request.shift_id, updates)
+
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update shift")
+
+    shift = db.get_shift(request.shift_id)
+    return Shift(**shift)
+
 @router.get("/shifts", response_model=List[Shift])
 async def get_shifts(
-    db: DbHandle,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None
-) -> List[Schedule]:
+    db: DbHandle
+) -> List[Shift]:
     """Get shifts within a date range."""
-    shifts = db.get_shifts(start_date, end_date)
+    shifts = db.get_shifts()
+    print(shifts)
     return [Shift(**shift) for shift in shifts]
 
 
@@ -255,8 +273,8 @@ async def delete_schedule(
     db: DbHandle,
     shift_id: str
 ) -> MessageResponse:
-    """Delete a schedule entry."""
-    # Check if schedule exists
+    """Delete a shift entry."""
+    # Check if shift exists
     if not db.get_shift(shift_id):
         raise HTTPException(status_code=404, detail=f"Shift for id {shift_id} not found")
 

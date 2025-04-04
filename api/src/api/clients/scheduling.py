@@ -613,7 +613,7 @@ class SchedulingClient:
             logger.exception("Failed to update rules")
             return False
 
-    def create_shift(self, employee_number: str, start: str, end: str, type: str) -> uuid.UUID:
+    def create_shift(self, employee_number: str, start: str, end: str, type: str) -> str:
         if not self.shifts:
             self.init()
 
@@ -650,7 +650,7 @@ class SchedulingClient:
         except Exception as e:
             logger.warning(f"Failed")
 
-    def get_shifts(self, start_date, end_date) -> List[Dict[str, Any]]:
+    def get_shifts(self) -> List[Dict[str, Any]]:
         """
         Get schedules within a date range.
 
@@ -668,24 +668,11 @@ class SchedulingClient:
         self.await_up()
 
         try:
-            where_clause = ""
             named_params = {}
-
-            if start_date and end_date:
-                where_clause = "WHERE s.start >= $start_date AND s.end <= $end_date"
-                named_params = {"start_date": start_date, "end_date": end_date}
-            elif start_date:
-                where_clause = "WHERE s.start >= $start_date"
-                named_params = {"start_date": start_date}
-            elif end_date:
-                where_clause = "WHERE s.end <= $end_date"
-                named_params = {"end_date": end_date}
 
             query = f"""
             SELECT s.*
             FROM {self.bucket_name}.{self.scope_name}.{self.shifts_coll} s
-            {where_clause}
-            ORDER BY s.start ASC
             """
 
             options = QueryOptions(named_parameters=named_params) if named_params else None
@@ -694,8 +681,6 @@ class SchedulingClient:
         except Exception:
             logger.exception("Failed to get schedules.")
             raise
-
-            
 
     def update_shift(self, shift_id, updates: Dict[str, Any]) -> bool:
         if not self.shifts:
