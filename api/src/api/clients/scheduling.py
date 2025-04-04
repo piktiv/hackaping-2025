@@ -6,6 +6,7 @@ from couchbase.auth import PasswordAuthenticator
 from couchbase.exceptions import DocumentNotFoundException
 import uuid
 
+from ..models import EmployeeInput
 from ..utils import log
 
 logger = log.get_logger(__name__)
@@ -218,7 +219,8 @@ class SchedulingClient:
         raise Exception(f"Couchbase query service not available after {max_retries} attempts")
 
     # Employee methods
-    def create_employee(self, name: str, employee_number: str, known_absences: List[str] = None, metadata: Dict[str, Any] = None) -> str:
+    # def create_employee(self, name: str, employee_number: str, known_absences: List[str] = None, metadata: Dict[str, Any] = None) -> str:
+    def create_employee(self, employee_number: str, data: dict) -> str:
         """
         Create a new employee.
 
@@ -234,17 +236,10 @@ class SchedulingClient:
         if not self.employees:
             self.init()
 
-        known_absences = known_absences or []
-        doc = {
-            "name": name,
-            "employee_number": employee_number,
-            "first_line_support_count": 0,
-            "known_absences": known_absences,
-            "metadata": metadata or {}
-        }
+        # known_absences = known_absences or []
 
         try:
-            self.employees.upsert(employee_number, doc)
+            self.employees.upsert(employee_number, data)
             logger.info(f"Created employee with number: {employee_number}")
             return employee_number
         except Exception:

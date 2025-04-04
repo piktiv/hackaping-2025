@@ -1,4 +1,5 @@
 import json
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +16,18 @@ from . import conf
 
 log.init(conf.get_log_level())
 logger = log.get_logger(__name__)
+
+def load_generated_data() -> tuple[list[EmployeeInput], list[HrEvent], list[list[HrEvent]]]:
+    """Load previously generated data from generated_data.json"""
+    # print(f'Current dir:{os.getcwd()}')
+    # with open('generated_data.json', 'r') as f:
+    #     data = json.load(f)
+    data = json.loads(conf.hr_file)
+    employees = [EmployeeInput(**emp) for emp in data['employees']]
+    hr_events = [HrEvent(**event) for event in data['hr_events']]
+    performance_reviews = [[HrEvent(**review) for review in reviews] for reviews in data['performance_reviews']]
+
+    return employees, hr_events, performance_reviews
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,69 +57,78 @@ async def lifespan(app: FastAPI):
 def init_default_data(db: SchedulingClient):
     """Initialize default employees and schedules for demo purposes."""
     # Check if we already have employees
-    employees = db.get_employees()
+    # employees = db.get_employees()
 
     # Define a fixed reference date for absences (January 1, 2024)
     reference_date = datetime(2024, 1, 1).date()
     today = datetime.now().date()
+    # Load generated data from file if it exists
+    try:
+        loaded_employees, loaded_hr_events, loaded_performance_reviews = load_generated_data()
+        logger.info(f"Loaded {len(loaded_employees)} generated employees with HR data")
+    except Exception as e:
+        logger.warning(f"Could not load generated data: {str(e)}")
+        loaded_employees = []
+        loaded_hr_events = []
+        loaded_performance_reviews = []
 
     # Configure absence patterns (every Nth day from the reference date)
     absence_patterns = {
-        "EMP001": 3,  # Every 3rd day from reference date
-        "EMP002": 5,  # Every 5th day from reference date
-        "EMP004": 7   # Every 7th day from reference date
+        # "EMP001": 3,  # Every 3rd day from reference date
+        # "EMP002": 5,  # Every 5th day from reference date
+        # "EMP004": 7   # Every 7th day from reference date
     }
 
     # Create/update employees
-    default_employees = [
-        {"name": "Lars Larsson", "employee_number": "EMP001", "known_absences": []},
-        {"name": "Dagobert Dagobertsson", "employee_number": "EMP002", "known_absences": []},
-        {"name": "Karl-Gustav Karlgustavsson", "employee_number": "EMP003", "known_absences": []},
-        {"name": "Kerstin Kerstinsdotter", "employee_number": "EMP004", "known_absences": []},
-        {"name": "Maj-Britt Majbrittdotter", "employee_number": "EMP005", "known_absences": []}
-    ]
+    # default_employees = [
+    #     {"name": "Lars Larsson", "employee_number": "EMP001", "known_absences": []},
+    #     {"name": "Dagobert Dagobertsson", "employee_number": "EMP002", "known_absences": []},
+    #     {"name": "Karl-Gustav Karlgustavsson", "employee_number": "EMP003", "known_absences": []},
+    #     {"name": "Kerstin Kerstinsdotter", "employee_number": "EMP004", "known_absences": []},
+    #     {"name": "Maj-Britt Majbrittdotter", "employee_number": "EMP005", "known_absences": []}
+    # ]
+    default_employees = [emp.model_dump() for emp in loaded_employees]
 
     # Generate known absences for the next 30 days
-    for emp in default_employees:
-        employee_id = emp["employee_number"]
-        if employee_id in absence_patterns:
-            pattern_days = absence_patterns[employee_id]
-            absences = []
+    # for emp in default_employees:
+    #     employee_id = emp["employee_number"]
+    #     if employee_id in absence_patterns:
+    #         pattern_days = absence_patterns[employee_id]
+    #         absences = []
+    #
+    #         for i in range(30):  # Look ahead 30 days
+    #             check_date = today + timedelta(days=i)
+    #             days_since_reference = (check_date - reference_date).days
+    #
+    #             if days_since_reference % pattern_days == 0:
+    #                 absences.append(check_date.strftime("%Y-%m-%d"))
+    #
+    #         emp["known_absences"] = absences
 
-            for i in range(30):  # Look ahead 30 days
-                check_date = today + timedelta(days=i)
-                days_since_reference = (check_date - reference_date).days
+    # if not employees:
+    logger.info("Initializing default employees...")
 
-                if days_since_reference % pattern_days == 0:
-                    absences.append(check_date.strftime("%Y-%m-%d"))
-
-            emp["known_absences"] = absences
-
-    if not employees:
-        logger.info("Initializing default employees...")
-
-        for emp in default_employees:
-            try:
-                db.create_employee(
-                    name=emp["name"],
-                    employee_number=emp["employee_number"],
-                    known_absences=emp["known_absences"]
-                )
-                logger.info(f"Created default employee: {emp['name']}")
-            except Exception as e:
-                logger.warning(f"Failed to create employee {emp['name']}: {str(e)}")
-    else:
-        logger.info(f"Found {len(employees)} existing employees, updating absences...")
-
-        # Update existing employees with new absence patterns
-        for emp in default_employees:
-            try:
-                existing_employee = db.get_employee(emp["employee_number"])
-                if existing_employee:
-                    db.update_employee(emp["employee_number"], {"known_absences": emp["known_absences"]})
-                    logger.info(f"Updated absences for employee: {emp['name']}")
-            except Exception as e:
-                logger.warning(f"Failed to update employee {emp['name']}: {str(e)}")
+    for i, emp in enumerate(default_employees):
+        try:
+            db.create_employee(
+                employee_number=f'EMP{i:03d}',
+                data=emp
+            )
+            logger.info(f"Created default employee: {emp['name']}")
+        except Exception as e:
+            logger.warning(f"Failed to create employee {emp['name']}: {str(e)}")
+    # else:
+    #     logger.info(f"Found {len(employees)} existing employees, updating absences...")
+    #
+    #     # Update existing employees with new absence patterns
+    #     for emp in default_employees:
+    #         try:
+    #             existing_employee = db.get_employee(emp["employee_number"])
+    #             if existing_employee:
+    #                 db.update_employee(emp["employee_number"], {"known_absences": emp["known_absences"]})
+    #                 logger.info(f"Updated absences for employee: {emp['name']}")
+    #         except Exception as e:
+    #             logger.warning(f"Failed to update employee {emp['name']}: {str(e)}")
 
     # Always front-fill the next 7 days of schedules
     logger.info("Front-filling schedules for the next 7 days...")
@@ -180,15 +202,3 @@ def main():
         log_level="debug" if http_conf.debug else "info",
         log_config=None
     )
-
-
-def load_generated_data() -> tuple[list[EmployeeInput], list[HrEvent], list[list[HrEvent]]]:
-    """Load previously generated data from generated_data.json"""
-    with open('generated_data.json', 'r') as f:
-        data = json.load(f)
-
-    employees = [EmployeeInput(**emp) for emp in data['employees']]
-    hr_events = [HrEvent(**event) for event in data['hr_events']]
-    performance_reviews = [[HrEvent(**review) for review in reviews] for reviews in data['performance_reviews']]
-
-    return employees, hr_events, performance_reviews
