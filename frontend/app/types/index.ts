@@ -2,22 +2,20 @@
 export interface Employee {
   name: string;
   employee_number: string;
-  first_line_support_count: number;
-  known_absences: string[];
-  metadata: Record<string, any>;
-}
-
-export interface EmployeeCreateRequest {
-  name: string;
-  employee_number: string;
-  known_absences?: string[];
-  metadata?: Record<string, any>;
 }
 
 // Schedule Types
 export interface Schedule {
   date: string;
   first_line_support: string;
+}
+
+export interface Shift {
+  employeeNumber: number;
+  start: string;
+  end: string;
+  type: string;
+  score: number;
 }
 
 export interface ScheduleCreateRequest {

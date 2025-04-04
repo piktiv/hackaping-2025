@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Path, Depends, HTTPException, Request
 from typing import Annotated, List, Dict, Optional
+from uuid import UUID
 
 from opperai import Opper, trace
 from .clients.scheduling import SchedulingClient
@@ -7,7 +8,7 @@ from .utils import log
 from .models import (
     Employee, Schedule, Rules,
     ScheduleChangeRequest, ScheduleChangeResponse, ScheduleChangeAnalysis,
-    MessageResponse, EmployeeCreateRequest, ScheduleCreateRequest, RulesUpdateRequest
+    MessageResponse, EmployeeCreateRequest, ScheduleCreateRequest, RulesUpdateRequest, Shift, ShiftCreateRequest
 )
 
 logger = log.get_logger(__name__)
@@ -216,6 +217,56 @@ async def delete_schedule(
         raise HTTPException(status_code=500, detail="Failed to delete schedule")
 
     return MessageResponse(message=f"Schedule for date {date} deleted successfully")
+
+# Shift Routes
+@router.post("/shifts", response_model=Shift)
+async def create_shift(
+    db: DbHandle,
+    request: ShiftCreateRequest
+) -> Shift:
+    """Create a new shift entry."""
+    # Check if employee exists
+    if not db.get_employee(request.employee_number):
+        raise HTTPException(status_code=404, detail=f"Employee with number {request.employee_number} not found")
+
+    shift_id = db.create_shift(
+        employee_number=request.employee_number,
+        start=request.start,
+        end=request.end,
+        type=request.type
+    )
+
+    shift = db.get_shift(shift_id)
+    return Shift(**shift)
+
+@router.get("/shifts", response_model=List[Shift])
+async def get_shifts(
+    db: DbHandle,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+) -> List[Schedule]:
+    """Get shifts within a date range."""
+    shifts = db.get_shifts(start_date, end_date)
+    return [Shift(**shift) for shift in shifts]
+
+
+@router.delete("/shifts/{shift_id}", response_model=MessageResponse)
+async def delete_schedule(
+    db: DbHandle,
+    shift_id: str
+) -> MessageResponse:
+    """Delete a schedule entry."""
+    # Check if schedule exists
+    if not db.get_shift(shift_id):
+        raise HTTPException(status_code=404, detail=f"Shift for id {shift_id} not found")
+
+    success = db.delete_shift(shift_id)
+
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete shift")
+
+    return MessageResponse(message=f"Shift with id {shift_id} deleted successfully")
+
 
 # Rules Routes
 @router.get("/rules", response_model=Rules)
