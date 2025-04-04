@@ -19,3 +19,7 @@ package-lock.json
 .env.production.local
 .env.development
 .env.test
+
+.vscode
+.vscode/*
+.idea/*

@@ -4,6 +4,7 @@ from couchbase.cluster import Cluster
 from couchbase.options import ClusterOptions, QueryOptions
 from couchbase.auth import PasswordAuthenticator
 from couchbase.exceptions import DocumentNotFoundException
+import uuid
 
 from ..utils import log
 
@@ -19,6 +20,7 @@ class SchedulingClient:
         scope: str = "_default",
         employees_coll: str = "employees",
         schedules_coll: str = "schedules",
+        shifts_coll: str = "shifts",
         rules_coll: str = "rules"
     ):
         self.url = url
@@ -28,12 +30,14 @@ class SchedulingClient:
         self.scope_name = scope
         self.employees_coll = employees_coll
         self.schedules_coll = schedules_coll
+        self.shifts_coll = shifts_coll
         self.rules_coll = rules_coll
         self.cluster = None
         self.bucket = None
         self.scope = None
         self.employees = None
         self.schedules = None
+        self.shifts = None
         self.rules = None
         self._is_query_service_ready = False
 
@@ -118,7 +122,7 @@ class SchedulingClient:
                 collection_manager = self.bucket.collections()
 
                 # Create collections if they don't exist
-                for coll in [self.employees_coll, self.schedules_coll, self.rules_coll]:
+                for coll in [self.employees_coll, self.schedules_coll, self.shifts_coll, self.rules_coll]:
                     try:
                         collection_manager.create_collection(self.scope_name, coll)
                         logger.info(f"Created collection: {coll}")
@@ -131,6 +135,7 @@ class SchedulingClient:
                 # Get collection references
                 self.employees = self.scope.collection(self.employees_coll)
                 self.schedules = self.scope.collection(self.schedules_coll)
+                self.shifts = self.scope.collection(self.shifts_coll)
                 self.rules = self.scope.collection(self.rules_coll)
 
                 # Initialize default rules if not exists
@@ -611,6 +616,126 @@ class SchedulingClient:
             return True
         except Exception:
             logger.exception("Failed to update rules")
+            return False
+
+    def create_shift(self, employee_number: str, start: str, end: str, type: str) -> uuid.UUID:
+        if not self.shifts:
+            self.init()
+
+        doc = {
+            "shift_id": uuid.uuid1(),
+            "employee_number": employee_number,
+            "start": start,
+            "end": end,
+            "type": type,
+            "score": -1
+        }
+
+        try:
+            self.shifts.upsert(doc["shift_id"], doc)
+            logger.info(f"Created shift with id: {doc['shift_id']}")
+            return doc["shift_id"]
+        except Exception:
+            logger.exception("Failed to create shift")
+            raise
+
+    def get_shift(self, shift_id) -> Optional[Dict[str, Any]]:
+        if not self.shifts:
+            self.init()
+
+        try:
+            result = self.shifts.get(shift_id)
+
+            if not result or not hasattr(result, 'value') or not result.value:
+                return None
+
+            return result.value
+        except DocumentNotFoundException:
+            return None
+        except Exception as e:
+            logger.warning(f"Failed")
+
+    def get_shifts(self, start_date, end_date) -> List[Dict[str, Any]]:
+        """
+        Get schedules within a date range.
+
+        Args:
+            start_date: Optional start date in ISO format (inclusive)
+            end_date: Optional end date in ISO format (inclusive)
+
+        Returns:
+            List of schedules
+        """
+        if not self.shifts:
+            self.init()
+
+        # Make sure the query service is available
+        self.await_up()
+
+        try:
+            where_clause = ""
+            named_params = {}
+
+            if start_date and end_date:
+                where_clause = "WHERE s.start >= $start_date AND s.end <= $end_date"
+                named_params = {"start_date": start_date, "end_date": end_date}
+            elif start_date:
+                where_clause = "WHERE s.start >= $start_date"
+                named_params = {"start_date": start_date}
+            elif end_date:
+                where_clause = "WHERE s.end <= $end_date"
+                named_params = {"end_date": end_date}
+
+            query = f"""
+            SELECT s.*
+            FROM {self.bucket_name}.{self.scope_name}.{self.shifts_coll} s
+            {where_clause}
+            ORDER BY s.start ASC
+            """
+
+            options = QueryOptions(named_parameters=named_params) if named_params else None
+            result = self.cluster.query(query, options)
+            return [row for row in result]
+        except Exception:
+            logger.exception("Failed to get schedules.")
+            raise
+
+            
+
+    def update_shift(self, shift_id, updates: Dict[str, Any]) -> bool:
+        if not self.shifts:
+            self.init()
+
+        try:
+            shift = self.get_shift(shift_id)
+            if not shift:
+                return False
+
+            # Update employee fields
+            for key, value in updates.items():
+                shift[key] = value
+
+            self.shifts.upsert(shift_id, shift)
+            logger.info(f"Updated shift {shift_id}")
+            return True
+        except Exception:
+            logger.exception("Failed to update employee")
+            return False
+
+    def delete_shift(self, shift_id):
+        if not self.shifts:
+            self.init()
+
+        try:
+            shift = self.get_shift(shift_id)
+            if not shift:
+                return False
+
+            self.employees.remove(shift_id)
+            logger.info(f"Deleted shift {shift_id}")
+            return True
+        except Exception:
+            logger.exception("Failed to delete shift")
             return False
 
     def close(self) -> None:
