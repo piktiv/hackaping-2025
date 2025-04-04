@@ -146,7 +146,7 @@ class ShiftReview(BaseModel):
         )
     )
     employee_satisfaction: dict[str, float] = Field(
-        description="Employee name as key, satisfaction level between 0 and 1 as value"
+        description="Employee number [EMP0xx] as key, satisfaction level between 0 and 1 as value"
     )
     shift_quality: str = Field(
         description="Employee name as key, quality assessment as value",

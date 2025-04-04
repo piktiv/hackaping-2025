@@ -273,7 +273,7 @@ async def get_shifts(
     shifts = db.get_shifts()
     return [Shift(**shift) for shift in shifts]
 
-@router.get("/evauate", response_model=ShiftReview)
+@router.get("/evaluate", response_model=ShiftReview)
 async def evaluate_shifts(
         db: DbHandle,
         opper: OpperHandle
