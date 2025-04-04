@@ -142,11 +142,12 @@ class ShiftReview(BaseModel):
         description=dedent("""
         Free form comments about the shift, who might be unsatisfied, who might be happy, who might be struggling, etc.
         Do suggest changes to the schedule if possible. You may also, very creatively, suggest things that may improve employee morale due to grievances.
+        Only include comments about employees that are actually scheduled.
         """
         )
     )
     employee_satisfaction: dict[str, float] = Field(
-        description="Employee name as key, satisfaction level between 0 and 1 as value"
+        description="Employee name as key, satisfaction level between 0 and 1 as value, only include employees that are actually scheduled"
     )
     shift_quality: str = Field(
         description="How good is the shift scheduling overall?",
