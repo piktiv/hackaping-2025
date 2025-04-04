@@ -735,8 +735,8 @@ class SchedulingClient:
 
         # Create shifts for each hour
         for hour in range(8, 16):
-            start_time = f"{date}T{hour:02d}:00:00"
-            end_time = f"{date}T{hour+1:02d}:00:00"
+            start_time = f"{date} {hour:02d}-00"
+            end_time = f"{date} {hour+1:02d}-00"
             
             # Special cases
             if hour == 8:  # First hour
