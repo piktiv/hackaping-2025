@@ -53,7 +53,7 @@ export const ShiftReviewDisplay = ({ review, isLoading }: ShiftReviewDisplayProp
           {Object.entries(review.employee_satisfaction).map(([employee, score]) => (
             <div key={employee} className="flex items-center justify-between">
               <span className="text-gray-600 dark:text-gray-400">{employee}</span>
-              <span className="text-gray-600 dark:text-gray-400">{score}/10</span>
+              <span className="text-gray-600 dark:text-gray-400">{parseInt(score*100)}%</span>
             </div>
           ))}
         </div>
