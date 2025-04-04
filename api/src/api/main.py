@@ -1,3 +1,4 @@
+import json
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +8,7 @@ from datetime import datetime, timedelta
 import asyncio
 
 from .clients.scheduling import SchedulingClient
+from .models import EmployeeInput, HrEvent
 from .routes import router
 from .utils import log
 from . import conf
@@ -178,3 +180,15 @@ def main():
         log_level="debug" if http_conf.debug else "info",
         log_config=None
     )
+
+
+def load_generated_data() -> tuple[list[EmployeeInput], list[HrEvent], list[list[HrEvent]]]:
+    """Load previously generated data from generated_data.json"""
+    with open('generated_data.json', 'r') as f:
+        data = json.load(f)
+
+    employees = [EmployeeInput(**emp) for emp in data['employees']]
+    hr_events = [HrEvent(**event) for event in data['hr_events']]
+    performance_reviews = [[HrEvent(**review) for review in reviews] for reviews in data['performance_reviews']]
+
+    return employees, hr_events, performance_reviews
