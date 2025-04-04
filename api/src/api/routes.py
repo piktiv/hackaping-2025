@@ -72,15 +72,16 @@ async def create_employee(
     db: DbHandle,
     request: EmployeeCreateRequest
 ) -> Employee:
-    """Create a new employee."""
-    employee_id = db.create_employee(
-        name=request.name,
-        employee_number=request.employee_number,
-        known_absences=request.known_absences,
-        metadata=request.metadata
-    )
-    employee = db.get_employee(employee_id)
-    return Employee(**employee)
+    # """Create a new employee."""
+    # employee_id = db.create_employee(
+    #     name=request.name,
+    #     employee_number=request.employee_number,
+    #     known_absences=request.known_absences,
+    #     metadata=request.metadata
+    # )
+    # employee = db.get_employee(employee_id)
+    # return Employee(**employee)
+    raise RuntimeError('STALE FUNCTION CALLED')
 
 @router.get("/employees", response_model=List[Employee])
 async def get_employees(
