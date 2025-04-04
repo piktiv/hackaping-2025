@@ -220,7 +220,7 @@ async def delete_schedule(
 
 # Shift Routes
 @router.post("/shifts", response_model=Shift)
-async def create_schedule(
+async def create_shift(
     db: DbHandle,
     request: ShiftCreateRequest
 ) -> Shift:
@@ -249,45 +249,23 @@ async def get_shifts(
     shifts = db.get_shifts(start_date, end_date)
     return [Shift(**shift) for shift in shifts]
 
-@router.put("/schedules", response_model=Shift)
-async def update_shift(
-    db: DbHandle,
-    request: ShiftCreateRequest,
-    shift_id: UUID
-) -> Shift:
-    """Update a schedule entry."""
-    # Check if schedule exists
-    if not db.get_shift(shift_id):
-        raise HTTPException(status_code=404, detail=f"Schedule for date {shift_id} not found")
 
-    # Check if employee exists
-    if not db.get_employee(request.employee_number):
-        raise HTTPException(status_code=404, detail=f"Employee with number {request.e} not found")
-
-    success = db.update_schedule(date, request.first_line_support)
-
-    if not success:
-        raise HTTPException(status_code=500, detail="Failed to update schedule")
-
-    schedule = db.get_schedule(date)
-    return Schedule(**schedule)
-
-@router.delete("/schedules/{date}", response_model=MessageResponse)
+@router.delete("/shifts/{shift_id}", response_model=MessageResponse)
 async def delete_schedule(
     db: DbHandle,
-    date: str = Path(..., description="The date in ISO format (YYYY-MM-DD)")
+    shift_id: str
 ) -> MessageResponse:
     """Delete a schedule entry."""
     # Check if schedule exists
-    if not db.get_schedule(date):
-        raise HTTPException(status_code=404, detail=f"Schedule for date {date} not found")
+    if not db.get_shift(shift_id):
+        raise HTTPException(status_code=404, detail=f"Shift for id {shift_id} not found")
 
-    success = db.delete_schedule(date)
+    success = db.delete_shift(shift_id)
 
     if not success:
-        raise HTTPException(status_code=500, detail="Failed to delete schedule")
+        raise HTTPException(status_code=500, detail="Failed to delete shift")
 
-    return MessageResponse(message=f"Schedule for date {date} deleted successfully")
+    return MessageResponse(message=f"Shift with id {shift_id} deleted successfully")
 
 
 # Rules Routes

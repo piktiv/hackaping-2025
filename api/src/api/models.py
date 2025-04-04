@@ -22,15 +22,6 @@ class ScheduleChangeAnalysis(BaseModel):
     reasoning: str = Field(description="Detailed explanation for the recommendation")
 
 
-# Employee Model
-class Employee(BaseModel):
-    name: str
-    employee_number: str
-    first_line_support_count: int = 0
-    known_absences: list[str] = Field(default_factory=list)  # ISO format dates
-    metadata: dict[str, Any] = Field(default_factory=dict)
-
-
 # Shift Model
 class Shift(BaseModel):
     shift_id: UUID
@@ -141,7 +132,6 @@ class ShiftCreateRequest(BaseModel):
     start: str
     end: str
     type: str
-    score : float
 
 class ShiftUpdateRequest(BaseModel):
     request_text: str
