@@ -24,6 +24,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [requestLoading, setRequestLoading] = useState(false);
   const [evaluation, setEvaluation] = useState<ShiftReview | null>(null)
+  const [evalIsLoading, setEvalIsLoading] = useState<boolean>(false);
 
   const today = new Date();
   const formatDate = (date: Date): string => date.toISOString().split('T')[0];
@@ -64,8 +65,10 @@ export default function Home() {
   }
 
   const handleFetchEval = () => {
+    setEvalIsLoading(()=>true);
     fetchEvaluation().then((result)=> {
       setEvaluation(result);
+      setEvalIsLoading(()=>false);
       console.log(result);
     });
   }
@@ -86,7 +89,14 @@ export default function Home() {
             {/*  onSubmit={handleChangeRequest}*/}
             {/*  isLoading={requestLoading}*/}
             {/*/>*/}
-            <button onClick={handleFetchEval}>Evaluate schedule</button>
+            <button
+                type="button"
+                className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-3 py-1 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800"
+                onClick={handleFetchEval}
+                disabled={evalIsLoading}
+            >
+              {evalIsLoading ? 'Processing...' : 'Evaluate Schedule'}
+            </button>
           </div>
 
           <div className="mt-4">
