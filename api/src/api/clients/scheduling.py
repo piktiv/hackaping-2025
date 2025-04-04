@@ -718,6 +718,49 @@ class SchedulingClient:
             logger.exception("Failed to delete shift")
             return False
 
+    def create_daily_shifts(self, date: str, employee_numbers: List[str]) -> None:
+        """
+        Create shifts for a day with the following pattern:
+        - Hours from 08:00 to 16:00
+        - For each hour:
+          - 2 employees on line1
+          - 2 employees on line2
+          - 1 employee on packing
+        - Special cases:
+          - First hour (08:00): 1 employee on cleaning instead of line1
+          - Two hours after lunch (13:00): 1 employee on inventory instead of line1
+        """
+        if len(employee_numbers) < 5:
+            raise ValueError("Need at least 5 employee numbers to create shifts")
+
+        # Create shifts for each hour
+        for hour in range(8, 16):
+            start_time = f"{date}T{hour:02d}:00:00"
+            end_time = f"{date}T{hour+1:02d}:00:00"
+            
+            # Special cases
+            if hour == 8:  # First hour
+                # Cleaning instead of line1
+                self.create_shift(employee_numbers[0], start_time, end_time, "cleaning")
+                self.create_shift(employee_numbers[1], start_time, end_time, "line1")
+                self.create_shift(employee_numbers[2], start_time, end_time, "line2")
+                self.create_shift(employee_numbers[3], start_time, end_time, "line2")
+            elif hour == 13:  # Two hours after lunch
+                # Inventory instead of line1
+                self.create_shift(employee_numbers[0], start_time, end_time, "inventory")
+                self.create_shift(employee_numbers[1], start_time, end_time, "line1")
+                self.create_shift(employee_numbers[2], start_time, end_time, "line1")
+                self.create_shift(employee_numbers[3], start_time, end_time, "line2")
+            else:
+                # Normal pattern
+                self.create_shift(employee_numbers[0], start_time, end_time, "line1")
+                self.create_shift(employee_numbers[1], start_time, end_time, "line1")
+                self.create_shift(employee_numbers[2], start_time, end_time, "line2")
+                self.create_shift(employee_numbers[3], start_time, end_time, "line2")
+            
+            # Packing shift for each hour
+            self.create_shift(employee_numbers[4], start_time, end_time, "packing")
+
     def close(self) -> None:
         """Close the database connection."""
         if self.cluster:

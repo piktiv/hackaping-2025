@@ -7,15 +7,19 @@ import uvicorn
 from opperai import Opper
 from datetime import datetime, timedelta
 import asyncio
+from typing import Dict, List
 
 from .clients.scheduling import SchedulingClient
-from .models import EmployeeInput, HrEvent
+from .models import EmployeeInput, HrEvent, Shift
 from .routes import router
 from .utils import log
 from . import conf
 
+import uuid
+
 log.init(conf.get_log_level())
 logger = log.get_logger(__name__)
+
 
 def load_generated_data() -> tuple[list[EmployeeInput], list[HrEvent], list[list[HrEvent]]]:
     """Load previously generated data from generated_data.json"""
@@ -28,6 +32,7 @@ def load_generated_data() -> tuple[list[EmployeeInput], list[HrEvent], list[list
     performance_reviews = [[HrEvent(**review) for review in reviews] for reviews in data['performance_reviews']]
 
     return employees, hr_events, performance_reviews
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -53,6 +58,7 @@ async def lifespan(app: FastAPI):
     logger.info("Application initialized")
 
     yield
+
 
 def init_default_data(db: SchedulingClient):
     """Initialize default employees and schedules for demo purposes."""
@@ -110,8 +116,9 @@ def init_default_data(db: SchedulingClient):
 
     for i, emp in enumerate(default_employees):
         try:
+            emp["employee_number"] = f'EMP{i:03d}'
             db.create_employee(
-                employee_number=f'EMP{i:03d}',
+                employee_number=emp["employee_number"],
                 data=emp
             )
             logger.info(f"Created default employee: {emp['name']}")
@@ -133,32 +140,35 @@ def init_default_data(db: SchedulingClient):
     # Always front-fill the next 7 days of schedules
     logger.info("Front-filling schedules for the next 7 days...")
 
-    for i in range(7):
-        day = today + timedelta(days=i)
-        date_str = day.strftime("%Y-%m-%d")
+    db.create_daily_shifts(today, [emp["employee_number"] for emp in default_employees])
 
-        # Check if schedule already exists for this date
-        existing_schedule = db.get_schedule(date_str)
+    # for i in range(7):
+    #     day = today + timedelta(days=i)
+    #     date_str = day.strftime("%Y-%m-%d")
 
-        if existing_schedule:
-            logger.info(f"Schedule for {date_str} already exists, skipping")
-            continue
+    #     # Check if schedule already exists for this date
+    #     existing_schedule = db.get_schedule(date_str)
 
-        # Assign an employee who's not absent on this day
-        available_employees = [e for e in default_employees if date_str not in e["known_absences"]]
+    #     if existing_schedule:
+    #         logger.info(f"Schedule for {date_str} already exists, skipping")
+    #         continue
 
-        if available_employees:
-            # Select employee based on index to distribute evenly
-            emp_number = available_employees[i % len(available_employees)]["employee_number"]
-        else:
-            # If all employees are absent, just use round-robin
-            emp_number = default_employees[i % len(default_employees)]["employee_number"]
+    #     # Assign an employee who's not absent on this day
+    #     available_employees = [e for e in default_employees if date_str not in e["known_absences"]]
 
-        try:
-            db.create_schedule(date_str=date_str, employee_number=emp_number)
-            logger.info(f"Created schedule for {date_str}")
-        except Exception as e:
-            logger.warning(f"Failed to create schedule for {date_str}: {str(e)}")
+    #     if available_employees:
+    #         # Select employee based on index to distribute evenly
+    #         emp_number = available_employees[i % len(available_employees)]["employee_number"]
+    #     else:
+    #         # If all employees are absent, just use round-robin
+    #         emp_number = default_employees[i % len(default_employees)]["employee_number"]
+
+    #     try:
+    #         db.create_schedule(date_str=date_str, employee_number=emp_number)
+    #         logger.info(f"Created schedule for {date_str}")
+    #     except Exception as e:
+    #         logger.warning(f"Failed to create schedule for {date_str}: {str(e)}")
+
 
 
 async def init_default_data_async(db: SchedulingClient):
@@ -171,6 +181,7 @@ async def init_default_data_async(db: SchedulingClient):
         logger.info("Async initialization of default data completed")
     except Exception as e:
         logger.error(f"Error in async initialization of default data: {str(e)}")
+
 
 app = FastAPI(
     title="Employee Scheduling API",
@@ -187,6 +198,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 def main():
     if not conf.validate():
