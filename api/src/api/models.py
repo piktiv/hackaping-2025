@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Any
+from uuid import UUID
+from datetime import datetime
 
 class ScheduleChange(BaseModel):
     employee_name: str = Field(description="The name of the employee originally scheduled for the date")
@@ -27,6 +29,15 @@ class Employee(BaseModel):
     known_absences: list[str] = Field(default_factory=list)  # ISO format dates
     metadata: dict[str, Any] = Field(default_factory=dict)
 
+
+# Shift Model
+class Shift(BaseModel):
+    shift_id: UUID
+    start: datetime # start of shift
+    end: datetime # end of shift
+    shift_type: str # Type of shift (cleaning, line 1, line2 etc...)
+    employee_number: str # Reference to Employee number
+    score: float # How happy the employee is with this scheduling
 
 # Schedule Model
 class Schedule(BaseModel):
@@ -70,3 +81,15 @@ class ScheduleCreateRequest(BaseModel):
 class RulesUpdateRequest(BaseModel):
     max_days_per_week: int | None = None
     preferred_balance: float | None = None
+
+class ShiftCreateRequest(BaseModel):
+    employee_number: str
+    start: str
+    end: str
+    type: str
+    score : float
+
+class ShiftUpdateRequest(BaseModel):
+    request_text: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
