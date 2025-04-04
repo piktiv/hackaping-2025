@@ -7,18 +7,37 @@ import { Employee, Shift } from "~/types";
 // Localizer for date management
 const localizer = momentLocalizer(moment);
 
-const CustomEventComponent: React.FC<EventProps<Shift>> = ({ event }) => (
-  <div
+const shiftColors: Record<string, string> = {
+  line2: "#4CAF50",  // green
+  line1: "#FF9800",  // orange
+  packing: "#3F51B5",    // indigo
+  cleaning: "#9E9E9E",  // grey
+  inventory: "#FFC107",  // amber
+};
+
+const CustomEventComponent: React.FC<EventProps<Shift>> = ({ event }) => {
+  const backgroundColor = shiftColors[event.type] || shiftColors.Default;
+
+  return (
+    <div
     style={{
-      backgroundColor: "#3182CE",
+      backgroundColor,
       color: "white",
-      padding: "5px",
+      padding: "4px",
       borderRadius: "4px",
+      height: "100%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: "bold",
+      textAlign: "center",
     }}
-  >
-    {event.type}
-  </div>
-);
+    >
+      {event.type}
+    </div>
+  );
+};
+
 
 const CustomToolbar: React.FC<ToolbarProps<Shift, { resourceId: string; resourceTitle: string }>> = ({
   label,
@@ -89,6 +108,23 @@ const CalendarScheduler: React.FC<CalendarInput> = ({
         components={{
           toolbar: CustomToolbar,
           event: CustomEventComponent,
+        }}
+        eventPropGetter={(event: Shift) => {
+          const backgroundColor = shiftColors[event.type] || shiftColors.Default;
+          return {
+            style: {
+              backgroundColor,
+              border: "none",
+              padding: "4px",
+              borderRadius: "4px",
+              overflow: "hidden",
+            },
+          };
+        }}
+        // Remove default title (time) display
+        titleAccessor={() => ""}
+        formats={{
+          eventTimeRangeFormat: () => "",
         }}
         style={{ border: "1px solid #ddd", borderRadius: "10px" }}
         // Pass resource props only for Day view; Month view renders as a regular grid
