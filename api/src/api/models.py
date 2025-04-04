@@ -24,9 +24,9 @@ class ScheduleChangeAnalysis(BaseModel):
 
 # Shift Model
 class Shift(BaseModel):
-    shift_id: UUID
-    start: datetime # start of shift
-    end: datetime # end of shift
+    shift_id: str
+    start: str # start of shift
+    end: str # end of shift
     shift_type: str # Type of shift (cleaning, line 1, line2 etc...)
     employee_number: str # Reference to Employee number
     score: float # How happy the employee is with this scheduling

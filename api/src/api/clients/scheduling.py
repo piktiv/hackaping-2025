@@ -623,7 +623,7 @@ class SchedulingClient:
             self.init()
 
         doc = {
-            "shift_id": uuid.uuid1(),
+            "shift_id": str(uuid.uuid1()),
             "employee_number": employee_number,
             "start": start,
             "end": end,

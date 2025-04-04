@@ -4,18 +4,11 @@ export interface Employee {
   employee_number: string;
 }
 
-// Schedule Types
-export interface Schedule {
-  date: string;
-  first_line_support: string;
-}
-
 export interface Shift {
-  employeeNumber: number;
+  employee_number: string;
   start: string;
   end: string;
   type: string;
-  score: number;
 }
 
 export interface ScheduleCreateRequest {
@@ -64,15 +57,8 @@ export interface MessageResponse {
   message: string;
 }
 
-// UI State Types
-export interface ScheduleWithEmployee extends Schedule {
-  employee_name: string; // Augmented with employee name for display
-}
-
 export interface UIState {
   employees: Employee[];
-  schedules: ScheduleWithEmployee[];
-  rules: Rules;
   isLoading: boolean;
   error: string | null;
 }

@@ -6,7 +6,6 @@ import {
 import type {
   Employee,
   Rules,
-  ScheduleWithEmployee,
   ScheduleChangeResponse
 } from "~/types";
 import { DashboardCard } from "~/components/DashboardCard";
@@ -24,7 +23,6 @@ export function meta() {
 
 export default function Home() {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [schedules, setSchedules] = useState<ScheduleWithEmployee[]>([]);
   const [rules, setRules] = useState<Rules | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
