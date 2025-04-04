@@ -137,17 +137,18 @@ class ShiftUpdateRequest(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 class ShiftReview(BaseModel):
-    employee_satisfaction: dict[str, int] = Field(
-        description="Employee name as key, satisfaction level between 0 and 10 as value"
-    )
-    shift_quality: str = Field(
-        description="Employee name as key, quality assessment as value",
-        enum=["excellent", "good", "fair", "poor"]
-    )
+    reasoning: str = Field(description="introspective reasoning about what to write")
     comments: str = Field(
         description=dedent("""
         Free form comments about the shift, who might be unsatisfied, who might be happy, who might be struggling, etc.
         Do suggest changes to the schedule if possible. You may also, very creatively, suggest things that may improve employee morale due to grievances.
         """
         )
+    )
+    employee_satisfaction: dict[str, float] = Field(
+        description="Employee number [EMP0xx] as key, satisfaction level between 0 and 1 as value"
+    )
+    shift_quality: str = Field(
+        description="Employee name as key, quality assessment as value",
+        enum=["excellent", "good", "fair", "poor"]
     )

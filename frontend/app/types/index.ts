@@ -46,3 +46,10 @@ export interface UIState {
   isLoading: boolean;
   error: string | null;
 }
+
+export interface ShiftReview {
+  reasoning: string;
+  comments: string;
+  employee_satisfaction: Record<string, number>;
+  shift_quality: 'excellent' | 'good' | 'fair' | 'poor';
+}

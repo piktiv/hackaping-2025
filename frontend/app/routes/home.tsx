@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import {
-  fetchEmployees,
+  fetchEmployees, fetchEvaluation,
   fetchShifts
 } from "~/api";
 import type {
   Employee,
-  Shift
+  Shift, ShiftReview
 } from "~/types";
 import { ScheduleChangeForm } from "~/components/ScheduleChangeForm";
 import CalendarScheduler from "~/components/CalendarScheduler";
@@ -23,6 +23,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [requestLoading, setRequestLoading] = useState(false);
+  const [evaluation, setEvaluation] = useState<ShiftReview | null>(null)
 
   const today = new Date();
   const formatDate = (date: Date): string => date.toISOString().split('T')[0];
@@ -62,6 +63,13 @@ export default function Home() {
     );
   }
 
+  const handleFetchEval = () => {
+    fetchEvaluation().then((result)=> {
+      setEvaluation(result);
+      console.log(result);
+    });
+  }
+
   return (
     <div className="flex h-full min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex w-full flex-col">
@@ -74,10 +82,11 @@ export default function Home() {
 
           <div className="mt-4">
             <h2 className="mb-2 text-lg font-semibold text-gray-800 dark:text-gray-200">Schedule Change Request</h2>
-            <ScheduleChangeForm
-              onSubmit={handleChangeRequest}
-              isLoading={requestLoading}
-            />
+            {/*<ScheduleChangeForm*/}
+            {/*  onSubmit={handleChangeRequest}*/}
+            {/*  isLoading={requestLoading}*/}
+            {/*/>*/}
+            <button onClick={handleFetchEval}>Evaluate schedule</button>
           </div>
 
           <div className="mt-4">

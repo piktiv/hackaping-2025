@@ -4,7 +4,7 @@ import type {
   PostShift,
   MessageResponse,
   Shift,
-  GetShift
+  GetShift, ShiftReview
 } from '~/types';
 
 const API_URL = 'http://localhost:3000/api';
@@ -83,3 +83,8 @@ export const fetchShifts = async () => {
   console.log(tmp)
   return tmp;
 };
+
+export const fetchEvaluation = async () => {
+  const resp = await api.get<ShiftReview>('/evaluate');
+  return resp.data;
+}

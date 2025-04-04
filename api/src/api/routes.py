@@ -1,14 +1,19 @@
+import json
+
 from fastapi import APIRouter, Path, Depends, HTTPException, Request
 from typing import Annotated, List, Dict, Optional
 from uuid import UUID
 
 from opperai import Opper, trace
+
+from . import conf
 from .clients.scheduling import SchedulingClient
 from .utils import log
 from .models import (
     Employee, Schedule, Rules,
     ScheduleChangeRequest, ScheduleChangeResponse, ScheduleChangeAnalysis,
-    MessageResponse, EmployeeCreateRequest, ScheduleCreateRequest, RulesUpdateRequest, Shift, ShiftCreateRequest, FrontendEmployee
+    MessageResponse, EmployeeCreateRequest, ScheduleCreateRequest, RulesUpdateRequest, Shift, ShiftCreateRequest,
+    FrontendEmployee, ShiftReview
 )
 
 logger = log.get_logger(__name__)
@@ -267,6 +272,29 @@ async def get_shifts(
     """Get shifts within a date range."""
     shifts = db.get_shifts()
     return [Shift(**shift) for shift in shifts]
+
+@router.get("/evaluate", response_model=ShiftReview)
+async def evaluate_shifts(
+        db: DbHandle,
+        opper: OpperHandle
+) -> ShiftReview:
+    shifts = db.get_shifts()
+    hr_record = json.loads(conf.hr_file)
+    analysis_result, _ = opper.call(
+        name="evaluate_shift_scheduling",
+        instructions="""
+        This is todays scheduling for the packing department of the brewery. Please predict how happy every employee might be with the scheduling. Take everything you know into account about them, including if they may like working in the same line as the colleague that is assigned to the same line.
+        Nobody likes the cleaning shift. Make sure they are satisfied with the rest of the day if they get it.
+        Also evaluate if they may perform well in their assignment. 
+        """,
+        input={
+            "shifts": shifts,
+            "hr_record": hr_record
+        },
+        output_type=ShiftReview
+    )
+
+    return analysis_result
 
 
 @router.delete("/shifts/{shift_id}", response_model=MessageResponse)
