@@ -44,25 +44,31 @@ class Rules(BaseModel):
 
 
 # Employee Model
-class Certification(Enum):
-    POWER_TOOLS = "power_tools"
-    FORKLIFT = "forklift" 
-    FIRE_SAFETY = "fire_safety"
-    FIRST_AID = "first_aid"
-    CPR = "cpr"
-    BREWING_CERTIFICATION = "brewing_certification"
-    FOOD_SAFETY = "food_safety"
-    QUALITY_CONTROL = "quality_control"
-    PACKAGING_SYSTEMS = "packaging_systems"
-    CHEMICAL_HANDLING = "chemical_handling"
-    CONFINED_SPACE = "confined_space"
-    BOILER_OPERATION = "boiler_operation"
-
-class Gender(Enum):
-    MALE = "male"
-    FEMALE = "female"
-    NON_BINARY = "non_binary"
-    OTHER = "other"
+class EmployeeInput(BaseModel):
+    name: str
+    age: int
+    gender: str = Field(description="Gender of the employee", enum=['male', 'female', 'non_binary', 'other'])
+    years_at_company: int
+    life_situation: str = Field(description="A description of the employee's life situation")
+    schedule_preferences: str = Field(description="A description of the employee's schedule preferences")
+    certifications: list[str] = Field(
+        default_factory=list,
+        description="List of employee certifications",
+        enum=[
+            "power_tools",
+            "forklift",
+            "fire_safety",
+            "first_aid",
+            "cpr",
+            "brewing_certification",
+            "food_safety",
+            "quality_control",
+            "packaging_systems",
+            "chemical_handling",
+            "confined_space",
+            "boiler_operation"
+        ]
+    )
 
 
 # HR Event Model
@@ -70,16 +76,6 @@ class HrEvent(BaseModel):
     event_type: str = Field(description="The type of HR event", enum=['meeting', 'development_review', 'incident', 'other'])
     event_date: str = Field(description="The date of the event in YYYY-MM-DD format")
     event_report: str = Field(description="Summary of notes or event details")
-
-
-class EmployeeInput(BaseModel):
-    name: str
-    age: int
-    gender: Gender
-    years_at_company: int
-    life_situation: str = Field(description="A description of the employee's life situation")
-    schedule_preferences: str = Field(description="A description of the employee's schedule preferences")
-    certifications: list[Certification] = Field(default_factory=list)
 
 
 class GroundEmployee(EmployeeInput):
