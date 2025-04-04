@@ -17,6 +17,7 @@ import { DashboardCard } from "~/components/DashboardCard";
 import { ScheduleTable } from "~/components/ScheduleTable";
 import { ScheduleChangeForm } from "~/components/ScheduleChangeForm";
 import { RequestAnalysis } from "~/components/RequestAnalysis";
+import CalendarScheduler from "~/components/CalendarScheduler";
 
 export function meta() {
   return [
@@ -99,44 +100,12 @@ export default function Home() {
   return (
     <div className="flex h-full min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex w-full flex-col">
-        <header className="bg-white shadow dark:bg-gray-800">
-          <div className="mx-auto max-w-7xl px-3 py-3 sm:px-4 lg:px-5">
-            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Employee Scheduling Dashboard</h1>
-          </div>
-        </header>
-
         <main className="flex-1 p-3">
           {error && (
             <div className="mb-3 rounded-md bg-red-50 p-2 text-red-700 dark:bg-red-900/30 dark:text-red-300">
               {error}
             </div>
           )}
-
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-            <DashboardCard
-              title="Weekly Schedule"
-              value={`${schedules.length} shifts`}
-              description={`Today's date: ${formatDate(today)}`}
-              icon="📅"
-            />
-            <DashboardCard
-              title="Employees"
-              value={employees.length.toString()}
-              description="Total staff members"
-              icon="👥"
-            />
-            <DashboardCard
-              title="Scheduling Rules"
-              value={rules ? `${rules.max_days_per_week} days max` : "N/A"}
-              description={rules ? `${rules.preferred_balance * 100}% balance target` : "Loading..."}
-              icon="📏"
-            />
-          </div>
-
-          <div className="mt-4">
-            <h2 className="mb-2 text-lg font-semibold text-gray-800 dark:text-gray-200">This Week's Schedule</h2>
-            <ScheduleTable schedules={schedules} />
-          </div>
 
           <div className="mt-4">
             <h2 className="mb-2 text-lg font-semibold text-gray-800 dark:text-gray-200">Schedule Change Request</h2>
@@ -146,6 +115,10 @@ export default function Home() {
               response={changeResponse}
             />
             {changeResponse && <RequestAnalysis response={changeResponse} />}
+          </div>
+
+          <div className="mt-4">
+            <CalendarScheduler/>
           </div>
         </main>
       </div>

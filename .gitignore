@@ -10,6 +10,7 @@ inject-secret.sh
 uv.lock
 yarn.lock
 package-lock.json
+.vscode
 
 .env
 .env.local
