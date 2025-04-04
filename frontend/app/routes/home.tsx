@@ -1,18 +1,13 @@
 import { useEffect, useState } from "react";
 import {
   fetchEmployees,
-  getShifts,
-  postShift
+  fetchShifts
 } from "~/api";
 import type {
   Employee,
-  Rules,
-  ScheduleChangeResponse
+  Shift
 } from "~/types";
-import { DashboardCard } from "~/components/DashboardCard";
-import { ScheduleTable } from "~/components/ScheduleTable";
 import { ScheduleChangeForm } from "~/components/ScheduleChangeForm";
-import { RequestAnalysis } from "~/components/RequestAnalysis";
 import CalendarScheduler from "~/components/CalendarScheduler";
 
 export function meta() {
@@ -24,10 +19,9 @@ export function meta() {
 
 export default function Home() {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [rules, setRules] = useState<Rules | null>(null);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [changeResponse, setChangeResponse] = useState<ScheduleChangeResponse | null>(null);
   const [requestLoading, setRequestLoading] = useState(false);
 
   const today = new Date();
@@ -37,16 +31,14 @@ export default function Home() {
     const loadData = async () => {
       try {
         setLoading(true);
-        /*const [employeesData, schedulesData, rulesData] = await Promise.all([
-          //fetchEmployees(),
-          //fetchRules()
-        ]);*/
+        const [employeesData, shiftsData] = await Promise.all([
+          fetchEmployees(),
+          fetchShifts()
+        ]);
 
-        //setEmployees(employeesData);
-        postShift();
+        setEmployees(employeesData);
+        setShifts(shiftsData);
 
-        getShifts();
-        //setRules(rulesData);
       } catch (err) {
         console.error('Error loading data:', err);
         setError('Failed to load data. Please try again later.');
@@ -85,13 +77,14 @@ export default function Home() {
             <ScheduleChangeForm
               onSubmit={handleChangeRequest}
               isLoading={requestLoading}
-              response={changeResponse}
             />
-            {changeResponse && <RequestAnalysis response={changeResponse} />}
           </div>
 
           <div className="mt-4">
-            <CalendarScheduler/>
+            <CalendarScheduler
+            employees={employees}
+            shifts={shifts}
+            />
           </div>
         </main>
       </div>

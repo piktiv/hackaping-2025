@@ -110,6 +110,7 @@ def init_default_data(db: SchedulingClient):
 
     for i, emp in enumerate(default_employees):
         try:
+            emp['employee_number'] = f'EMP{i:03d}'
             db.create_employee(
                 employee_number=f'EMP{i:03d}',
                 data=emp
