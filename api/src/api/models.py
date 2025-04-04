@@ -34,12 +34,17 @@ class Rules(BaseModel):
 # Employee Model
 class Certification(Enum):
     POWER_TOOLS = "power_tools"
-    HEAVY_EQUIPMENT = "heavy_equipment"
-    FORKLIFT = "forklift"
-    CRANE = "crane"
+    FORKLIFT = "forklift" 
     FIRE_SAFETY = "fire_safety"
     FIRST_AID = "first_aid"
     CPR = "cpr"
+    BREWING_CERTIFICATION = "brewing_certification"
+    FOOD_SAFETY = "food_safety"
+    QUALITY_CONTROL = "quality_control"
+    PACKAGING_SYSTEMS = "packaging_systems"
+    CHEMICAL_HANDLING = "chemical_handling"
+    CONFINED_SPACE = "confined_space"
+    BOILER_OPERATION = "boiler_operation"
 
 class Gender(Enum):
     MALE = "male"
@@ -49,18 +54,10 @@ class Gender(Enum):
 
 
 # HR Event Model
-class HrEventType(Enum):
-    MEETING = "meeting"
-    DEVELOPMENT_REVIEW = "development_review"
-    INCIDENT = "incident"
-    OTHER = "other"
-
-
 class HrEvent(BaseModel):
-    event_type: HrEventType = Field(description="The type of HR event")
+    event_type: str = Field(description="The type of HR event", enum=['meeting', 'development_review', 'incident', 'other'])
     event_date: str = Field(description="The date of the event in YYYY-MM-DD format")
     event_report: str = Field(description="Summary of notes or event details")
-    # event_metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class EmployeeInput(BaseModel):
@@ -79,6 +76,7 @@ class GroundEmployee(EmployeeInput):
     hr_events: list[HrEvent] = Field(default_factory=list)
     known_absences: list[str] = Field(default_factory=list)  # ISO format dates
     metadata: dict[str, Any] = Field(default_factory=dict)
+
 
 class Employee(GroundEmployee):
     employee_number: str
