@@ -287,7 +287,7 @@ class SchedulingClient:
 
         try:
             query = f"""
-            SELECT e.*
+            SELECT e.name, e.employee_number
             FROM {self.bucket_name}.{self.scope_name}.{self.employees_coll} e
             """
 

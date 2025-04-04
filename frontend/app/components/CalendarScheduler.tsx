@@ -2,50 +2,12 @@ import React, { useState } from "react";
 import { Calendar, Views, EventProps, momentLocalizer, ToolbarProps } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { Employee, Shift } from "~/types";
 
 // Localizer for date management
 const localizer = momentLocalizer(moment);
 
-// Define a Person type
-type Person = {
-  id: number;
-  name: string;
-};
-
-interface CustomEvent {
-  id: number;
-  title: string;
-  start: Date;
-  end: Date;
-  resourceId?: number;
-}
-
-// Sample people (columns)
-const people: Person[] = [
-  { id: 1, name: "Alice" },
-  { id: 2, name: "Bob" },
-  { id: 3, name: "Charlie" },
-];
-
-// Sample events
-const events: CustomEvent[] = [
-  {
-    id: 1,
-    title: "Meeting with Client",
-    start: new Date(2025, 3, 4, 10, 0),
-    end: new Date(2025, 3, 4, 11, 0),
-    resourceId: 1,
-  },
-  {
-    id: 2,
-    title: "Code Review",
-    start: new Date(2025, 3, 4, 14, 0),
-    end: new Date(2025, 3, 4, 15, 0),
-    resourceId: 2,
-  },
-];
-
-const CustomEventComponent: React.FC<EventProps<CustomEvent>> = ({ event }) => (
+const CustomEventComponent: React.FC<EventProps<Shift>> = ({ event }) => (
   <div
     style={{
       backgroundColor: "#3182CE",
@@ -54,11 +16,11 @@ const CustomEventComponent: React.FC<EventProps<CustomEvent>> = ({ event }) => (
       borderRadius: "4px",
     }}
   >
-    {event.title}
+    {event.type}
   </div>
 );
 
-const CustomToolbar: React.FC<ToolbarProps<CustomEvent, { resourceId: number; resourceTitle: string }>> = ({
+const CustomToolbar: React.FC<ToolbarProps<Shift, { resourceId: string; resourceTitle: string }>> = ({
   label,
   views,
   onView,
@@ -99,14 +61,22 @@ const CustomToolbar: React.FC<ToolbarProps<CustomEvent, { resourceId: number; re
   );
 };
 
-const CalendarScheduler: React.FC = () => {
+interface CalendarInput {
+  employees: Employee[];
+  shifts: (Shift & { resourceId: string })[];
+}
+
+const CalendarScheduler: React.FC<CalendarInput> = ({
+  employees,
+  shifts
+}) => {
   const [view, setView] = useState<"day" | "month">("day");
   return (
     <div style={{ height: "80vh", padding: "20px" }}>
       <h2>Work Schedule</h2>
-      <Calendar
+      <Calendar<Shift, { resourceId: string; resourceTitle: string }>
         localizer={localizer}
-        events={view === 'day' ? events : []}
+        events={view === 'day' ? shifts : []}
         startAccessor="start"
         endAccessor="end"
         view={view}
@@ -123,12 +93,14 @@ const CalendarScheduler: React.FC = () => {
         style={{ border: "1px solid #ddd", borderRadius: "10px" }}
         // Pass resource props only for Day view; Month view renders as a regular grid
         {...(view === Views.DAY && {
-          resources: people.map((person) => ({
-            resourceId: person.id,
-            resourceTitle: person.name,
+          resources: employees.map((employee) => ({
+            resourceId: employee.employee_number,
+            resourceTitle: employee.name,
           })),
           resourceIdAccessor: "resourceId",
           resourceTitleAccessor: "resourceTitle",
+          min: new Date(1970, 1, 1, 8, 0, 0),
+          max: new Date(1970, 1, 1, 17, 0, 0),
         })}
       />
     </div>

@@ -8,7 +8,7 @@ from .utils import log
 from .models import (
     Employee, Schedule, Rules,
     ScheduleChangeRequest, ScheduleChangeResponse, ScheduleChangeAnalysis,
-    MessageResponse, EmployeeCreateRequest, ScheduleCreateRequest, RulesUpdateRequest, Shift, ShiftCreateRequest
+    MessageResponse, EmployeeCreateRequest, ScheduleCreateRequest, RulesUpdateRequest, Shift, ShiftCreateRequest, FrontendEmployee
 )
 
 logger = log.get_logger(__name__)
@@ -83,15 +83,14 @@ async def create_employee(
     # return Employee(**employee)
     raise RuntimeError('STALE FUNCTION CALLED')
 
-@router.get("/employees", response_model=List[Employee])
+@router.get("/employees", response_model=List[FrontendEmployee])
 async def get_employees(
     db: DbHandle
-) -> List[Employee]:
+) -> List[FrontendEmployee]:
     """Get all employees."""
     employees = db.get_employees()
     print('employees: ', employees)
-    print(type(employees))
-    return [Employee(**emp) for emp in employees]
+    return [FrontendEmployee(**emp) for emp in employees]
 
 @router.get("/employees/{employee_number}", response_model=Employee)
 async def get_employee(
@@ -267,7 +266,6 @@ async def get_shifts(
 ) -> List[Shift]:
     """Get shifts within a date range."""
     shifts = db.get_shifts()
-    print(shifts)
     return [Shift(**shift) for shift in shifts]
 
 

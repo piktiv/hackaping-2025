@@ -3,6 +3,7 @@ import type {
   Employee,
   PostShift,
   MessageResponse,
+  Shift,
   GetShift
 } from '~/types';
 
@@ -55,7 +56,30 @@ export const postShift = async () => {
   console.log(response.data);
 };
 
-export const getShifts = async (startDate?: string, endDate?: string) => {
+function convertDate(date: string): Date {
+  let tmp = date.split(" ");
+  let d = tmp[0].split("-")
+  let t = tmp[1].split("-")
+
+  const year = parseInt(d[0]) 
+  const month = parseInt(d[1])
+  const day = parseInt(d[2])
+
+  const hour = parseInt(t[0])
+  const minute = parseInt(t[1])
+  return(new Date(year, month-1, day, hour, minute))
+}
+export const fetchShifts = async () => {
   const response = await api.get<GetShift[]>('/shifts');
-  console.log(response.data);
+
+  const tmp = response.data.map((shift) => {
+    return {
+      ...shift,
+      start: convertDate(shift.start),
+      end: convertDate(shift.end),
+      resourceId: shift.employee_number
+    } as Shift
+  })
+  console.log(tmp)
+  return tmp;
 };
