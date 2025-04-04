@@ -241,12 +241,11 @@ async def create_shift(
 
 @router.get("/shifts", response_model=List[Shift])
 async def get_shifts(
-    db: DbHandle,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None
-) -> List[Schedule]:
+    db: DbHandle
+) -> List[Shift]:
     """Get shifts within a date range."""
-    shifts = db.get_shifts(start_date, end_date)
+    shifts = db.get_shifts()
+    print(shifts)
     return [Shift(**shift) for shift in shifts]
 
 

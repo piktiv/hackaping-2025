@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   fetchEmployees,
+  getShifts,
   postShift
 } from "~/api";
 import type {
@@ -43,6 +44,8 @@ export default function Home() {
 
         //setEmployees(employeesData);
         postShift();
+
+        getShifts();
         //setRules(rulesData);
       } catch (err) {
         console.error('Error loading data:', err);

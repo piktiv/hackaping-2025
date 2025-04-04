@@ -4,11 +4,16 @@ export interface Employee {
   employee_number: string;
 }
 
-export interface Shift {
+export interface PostShift {
   employee_number: string;
   start: string;
   end: string;
   type: string;
+}
+
+export interface GetShift extends PostShift{
+  score: number;
+  shift_id: string;
 }
 
 export interface ScheduleCreateRequest {
